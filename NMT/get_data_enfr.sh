@@ -42,7 +42,7 @@ INPUT_FROM_SGM=$MOSES/scripts/ems/support/input-from-sgm.perl
 REM_NON_PRINT_CHAR=$MOSES/scripts/tokenizer/remove-non-printing-char.perl
 
 # fastBPE
-FASTBPE_DIR=$TOOLS_PATH/fastBPE
+FASTBPE_DIR=$TOOLS_PATH/fastBPE/fastBPE
 FASTBPE=$FASTBPE_DIR/fast
 
 # fastText
