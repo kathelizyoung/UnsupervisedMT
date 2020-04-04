@@ -90,6 +90,7 @@ cd $TOOLS_PATH
 if [ ! -f "$FASTBPE" ]; then
   echo "Compiling fastBPE..."
   cd $FASTBPE_DIR
+  cp main.cc fast.cc
   g++ -std=c++11 -pthread -O3 fast.cc -o fast
 fi
 echo "fastBPE compiled in: $FASTBPE"
