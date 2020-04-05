@@ -42,7 +42,8 @@ INPUT_FROM_SGM=$MOSES/scripts/ems/support/input-from-sgm.perl
 REM_NON_PRINT_CHAR=$MOSES/scripts/tokenizer/remove-non-printing-char.perl
 
 # fastBPE
-FASTBPE_DIR=$TOOLS_PATH/fastBPE/fastBPE
+#FASTBPE_DIR=$TOOLS_PATH/fastBPE/fastBPE
+FASTBPE_DIR=$TOOLS_PATH/fastBPE
 FASTBPE=$FASTBPE_DIR/fast
 
 # fastText
@@ -90,8 +91,9 @@ cd $TOOLS_PATH
 if [ ! -f "$FASTBPE" ]; then
   echo "Compiling fastBPE..."
   cd $FASTBPE_DIR
-  cp main.cc fast.cc
-  g++ -std=c++11 -pthread -O3 fast.cc -o fast
+#  cp main.cc fast.cc
+#  g++ -std=c++11 -pthread -O3 fast.cc -o fast
+  g++ -std=c++11 -pthread -O3 fastBPE/main.cc -IfastBPE -o fast
 fi
 echo "fastBPE compiled in: $FASTBPE"
 
@@ -120,10 +122,11 @@ echo "fastText compiled in: $FASTTEXT"
 cd $MONO_PATH
 
 echo "Downloading English files..."
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.en.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.en.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.en.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.en.shuffled.gz
+#wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.en.shuffled.gz
+#wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.en.shuffled.gz
+#wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.en.shuffled.gz
+#wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.en.shuffled.gz
+
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2011.en.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2012.en.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2013.en.shuffled.gz
@@ -133,10 +136,11 @@ wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.en
 # wget -c http://data.statmt.org/wmt18/translation-task/news.2017.en.shuffled.deduped.gz
 
 echo "Downloading French files..."
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.fr.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.fr.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.fr.shuffled.gz
-wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.fr.shuffled.gz
+#wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.fr.shuffled.gz
+#wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.fr.shuffled.gz
+#wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.fr.shuffled.gz
+#wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.fr.shuffled.gz
+
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2011.fr.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2012.fr.shuffled.gz
 # wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2013.fr.shuffled.gz
@@ -172,6 +176,10 @@ if ! [[ "$(wc -l < $TGT_RAW)" -eq "$N_MONO" ]]; then echo "ERROR: Number of line
 # tokenize data
 if ! [[ -f "$SRC_TOK" && -f "$TGT_TOK" ]]; then
   echo "Tokenize monolingual data..."
+
+  echo $NORM_PUNC
+  echo $TOKENIZER
+
   cat $SRC_RAW | $NORM_PUNC -l en | $TOKENIZER -l en -no-escape -threads $N_THREADS > $SRC_TOK
   cat $TGT_RAW | $NORM_PUNC -l fr | $TOKENIZER -l fr -no-escape -threads $N_THREADS > $TGT_TOK
 fi
