@@ -1,7 +1,10 @@
 # Created by https://www.gitignore.io/api/vim,python
 
 data/
+new_data/
+sp_data/
 tools/
+dumped/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

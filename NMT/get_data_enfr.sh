@@ -42,7 +42,6 @@ INPUT_FROM_SGM=$MOSES/scripts/ems/support/input-from-sgm.perl
 REM_NON_PRINT_CHAR=$MOSES/scripts/tokenizer/remove-non-printing-char.perl
 
 # fastBPE
-#FASTBPE_DIR=$TOOLS_PATH/fastBPE/fastBPE
 FASTBPE_DIR=$TOOLS_PATH/fastBPE
 FASTBPE=$FASTBPE_DIR/fast
 
@@ -60,10 +59,6 @@ CONCAT_BPE=$MONO_PATH/all.en-fr.$CODES
 SRC_VOCAB=$MONO_PATH/vocab.en.$CODES
 TGT_VOCAB=$MONO_PATH/vocab.fr.$CODES
 FULL_VOCAB=$MONO_PATH/vocab.en-fr.$CODES
-SRC_VALID=$PARA_PATH/dev/newstest2013-ref.en
-TGT_VALID=$PARA_PATH/dev/newstest2013-ref.fr
-SRC_TEST=$PARA_PATH/dev/newstest2014-fren-src.en
-TGT_TEST=$PARA_PATH/dev/newstest2014-fren-src.fr
 
 
 #
@@ -127,27 +122,11 @@ wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.en
 wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.en.shuffled.gz
 wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.en.shuffled.gz
 
-# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2011.en.shuffled.gz
-# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2012.en.shuffled.gz
-# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2013.en.shuffled.gz
-# wget -c http://www.statmt.org/wmt15/training-monolingual-news-crawl-v2/news.2014.en.shuffled.v2.gz
-# wget -c http://data.statmt.org/wmt16/translation-task/news.2015.en.shuffled.gz
-# wget -c http://data.statmt.org/wmt17/translation-task/news.2016.en.shuffled.gz
-# wget -c http://data.statmt.org/wmt18/translation-task/news.2017.en.shuffled.deduped.gz
-
 echo "Downloading French files..."
 wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.fr.shuffled.gz
 wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.fr.shuffled.gz
 wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2009.fr.shuffled.gz
 wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2010.fr.shuffled.gz
-
-# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2011.fr.shuffled.gz
-# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2012.fr.shuffled.gz
-# wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2013.fr.shuffled.gz
-# wget -c http://www.statmt.org/wmt15/training-monolingual-news-crawl-v2/news.2014.fr.shuffled.v2.gz
-# wget -c http://data.statmt.org/wmt17/translation-task/news.2015.fr.shuffled.gz
-# wget -c http://data.statmt.org/wmt17/translation-task/news.2016.fr.shuffled.gz
-# wget -c http://data.statmt.org/wmt17/translation-task/news.2017.fr.shuffled.gz
 
 # decompress monolingual data
 for FILENAME in news*gz; do
@@ -180,8 +159,10 @@ if ! [[ -f "$SRC_TOK" && -f "$TGT_TOK" ]]; then
   echo $NORM_PUNC
   echo $TOKENIZER
 
-  cat $SRC_RAW | $NORM_PUNC -l en | $TOKENIZER -l en -no-escape -threads $N_THREADS > $SRC_TOK
-  cat $TGT_RAW | $NORM_PUNC -l fr | $TOKENIZER -l fr -no-escape -threads $N_THREADS > $TGT_TOK
+#  cat $SRC_RAW | $NORM_PUNC -l en | $TOKENIZER -l en -no-escape -threads $N_THREADS > $SRC_TOK
+#  cat $TGT_RAW | $NORM_PUNC -l fr | $TOKENIZER -l fr -no-escape -threads $N_THREADS > $TGT_TOK
+  cat $SRC_RAW | $NORM_PUNC -l en | $TOKENIZER -l en -no-escape > $SRC_TOK
+  cat $TGT_RAW | $NORM_PUNC -l fr | $TOKENIZER -l fr -no-escape > $TGT_TOK
 fi
 echo "EN monolingual data tokenized in: $SRC_TOK"
 echo "FR monolingual data tokenized in: $TGT_TOK"
@@ -223,6 +204,8 @@ echo "EN binarized data in: $SRC_TOK.$CODES.pth"
 echo "FR binarized data in: $TGT_TOK.$CODES.pth"
 
 
+
+
 #
 # Download parallel data (for evaluation only)
 #
@@ -235,6 +218,13 @@ wget -c http://data.statmt.org/wmt17/translation-task/dev.tgz
 echo "Extracting parallel data..."
 tar -xzf dev.tgz
 
+
+SRC_VALID=$PARA_PATH/dev/newstest2013-ref.en
+TGT_VALID=$PARA_PATH/dev/newstest2013-ref.fr
+SRC_TEST=$PARA_PATH/dev/newstest2014-fren-src.en
+TGT_TEST=$PARA_PATH/dev/newstest2014-fren-src.fr
+
+
 # check valid and test files are here
 if ! [[ -f "$SRC_VALID.sgm" ]]; then echo "$SRC_VALID.sgm is not found!"; exit; fi
 if ! [[ -f "$TGT_VALID.sgm" ]]; then echo "$TGT_VALID.sgm is not found!"; exit; fi
@@ -242,10 +232,14 @@ if ! [[ -f "$SRC_TEST.sgm" ]]; then echo "$SRC_TEST.sgm is not found!"; exit; fi
 if ! [[ -f "$TGT_TEST.sgm" ]]; then echo "$TGT_TEST.sgm is not found!"; exit; fi
 
 echo "Tokenizing valid and test data..."
-$INPUT_FROM_SGM < $SRC_VALID.sgm | $NORM_PUNC -l en | $REM_NON_PRINT_CHAR | $TOKENIZER -l en -no-escape -threads $N_THREADS > $SRC_VALID
-$INPUT_FROM_SGM < $TGT_VALID.sgm | $NORM_PUNC -l fr | $REM_NON_PRINT_CHAR | $TOKENIZER -l fr -no-escape -threads $N_THREADS > $TGT_VALID
-$INPUT_FROM_SGM < $SRC_TEST.sgm | $NORM_PUNC -l en | $REM_NON_PRINT_CHAR | $TOKENIZER -l en -no-escape -threads $N_THREADS > $SRC_TEST
-$INPUT_FROM_SGM < $TGT_TEST.sgm | $NORM_PUNC -l fr | $REM_NON_PRINT_CHAR | $TOKENIZER -l fr -no-escape -threads $N_THREADS > $TGT_TEST
+#$INPUT_FROM_SGM < $SRC_VALID.sgm | $NORM_PUNC -l en | $REM_NON_PRINT_CHAR | $TOKENIZER -l en -no-escape -threads $N_THREADS > $SRC_VALID
+#$INPUT_FROM_SGM < $TGT_VALID.sgm | $NORM_PUNC -l fr | $REM_NON_PRINT_CHAR | $TOKENIZER -l fr -no-escape -threads $N_THREADS > $TGT_VALID
+#$INPUT_FROM_SGM < $SRC_TEST.sgm | $NORM_PUNC -l en | $REM_NON_PRINT_CHAR | $TOKENIZER -l en -no-escape -threads $N_THREADS > $SRC_TEST
+#$INPUT_FROM_SGM < $TGT_TEST.sgm | $NORM_PUNC -l fr | $REM_NON_PRINT_CHAR | $TOKENIZER -l fr -no-escape -threads $N_THREADS > $TGT_TEST
+$INPUT_FROM_SGM < $SRC_VALID.sgm | $NORM_PUNC -l en | $REM_NON_PRINT_CHAR | $TOKENIZER -l en -no-escape > $SRC_VALID
+$INPUT_FROM_SGM < $TGT_VALID.sgm | $NORM_PUNC -l fr | $REM_NON_PRINT_CHAR | $TOKENIZER -l fr -no-escape > $TGT_VALID
+$INPUT_FROM_SGM < $SRC_TEST.sgm | $NORM_PUNC -l en | $REM_NON_PRINT_CHAR | $TOKENIZER -l en -no-escape > $SRC_TEST
+$INPUT_FROM_SGM < $TGT_TEST.sgm | $NORM_PUNC -l fr | $REM_NON_PRINT_CHAR | $TOKENIZER -l fr -no-escape > $TGT_TEST
 
 echo "Applying BPE to valid and test files..."
 $FASTBPE applybpe $SRC_VALID.$CODES $SRC_VALID $BPE_CODES $SRC_VOCAB
@@ -290,6 +284,7 @@ echo "Concatenated data in: $CONCAT_BPE"
 
 if ! [[ -f "$CONCAT_BPE.vec" ]]; then
   echo "Training fastText on $CONCAT_BPE..."
-  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -thread $N_THREADS -ws 5 -neg 10 -input $CONCAT_BPE -output $CONCAT_BPE
+#  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -thread $N_THREADS -ws 5 -neg 10 -input $CONCAT_BPE -output $CONCAT_BPE
+  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -ws 5 -neg 10 -input $CONCAT_BPE -output $CONCAT_BPE
 fi
 echo "Cross-lingual embeddings in: $CONCAT_BPE.vec"
