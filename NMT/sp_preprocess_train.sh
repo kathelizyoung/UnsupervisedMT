@@ -251,7 +251,7 @@ $UMT_PATH/preprocess.py $FULL_VOCAB $TGT_TEST.$METHOD
 #
 if ! [[ -f "$CONCAT_RAW.$METHOD.vec" ]]; then
   echo "Training fastText on $CONCAT_RAW.$METHOD..."
-  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -thread 10 -ws 5 -neg 10 -input $CONCAT_RAW.$METHOD -output $CONCAT_RAW.$METHOD
+  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -thread $N_THREADS -ws 5 -neg 10 -input $CONCAT_RAW.$METHOD -output $CONCAT_RAW.$METHOD
 #  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -ws 5 -neg 10 -input $CONCAT_RAW.$METHOD -output $CONCAT_RAW.$METHOD
 fi
 echo "Cross-lingual embeddings in: $CONCAT_RAW.$METHOD.vec"
