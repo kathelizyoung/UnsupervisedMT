@@ -14,8 +14,8 @@ set -e
 N_MONO=10000000  # number of monolingual sentences for each language
 N_THREADS=48     # number of threads in data preprocessing
 N_EPOCHS=10      # number of fastText epochs
-#METHOD=bpe
-METHOD=unigram
+METHOD=bpe
+#METHOD=unigram
 #
 # Initialize tools and data paths
 #
@@ -106,6 +106,10 @@ echo "fastText compiled in: $FASTTEXT"
 
 cd $MONO_PATH
 
+cp $PWD/data/para/dev $PWD/sp_data/para
+cp $PWD/data/mono/all.en $PWD/sp_data/mono/
+cp $PWD/data/mono/all.fr $PWD/sp_data/mono/
+
 #echo "Downloading English files..."
 #wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2007.en.shuffled.gz
 #wget -c http://www.statmt.org/wmt14/training-monolingual-news-crawl/news.2008.en.shuffled.gz
@@ -153,7 +157,7 @@ echo "Merged en-fr data in: $CONCAT_RAW"
 # train method model
 if [ ! -f "$MODEL" ]; then
     echo "Training $METHOD model..."
-    spm_train --input=$CONCAT_RAW --model_prefix=$METHOD --vocab_size=60000 --character_coverage=1.0 --model_type=$METHOD --input_sentence_size=1000000
+    spm_train --input=$CONCAT_RAW --model_prefix=$METHOD --vocab_size=60000 --character_coverage=1.0 --model_type=$METHOD
 fi
 echo "$METHOD model trained in: $MODEL"
 
@@ -204,8 +208,8 @@ echo "FR binarized data in: $TGT_RAW.$METHOD.pth"
 # Download parallel data (for evaluation only)
 #
 
-cd $PARA_PATH
-
+#cd $PARA_PATH
+#
 #echo "Downloading parallel data..."
 #wget -c http://data.statmt.org/wmt17/translation-task/dev.tgz
 #
@@ -251,15 +255,11 @@ $UMT_PATH/preprocess.py $FULL_VOCAB $TGT_TEST.$METHOD
 #
 if ! [[ -f "$CONCAT_RAW.$METHOD.vec" ]]; then
   echo "Training fastText on $CONCAT_RAW.$METHOD..."
-  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -thread 10 -ws 5 -neg 10 -input $CONCAT_RAW.$METHOD -output $CONCAT_RAW.$METHOD
+  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -thread $N_THREADS -ws 5 -neg 10 -input $CONCAT_RAW.$METHOD -output $CONCAT_RAW.$METHOD
 #  $FASTTEXT skipgram -epoch $N_EPOCHS -minCount 0 -dim 512 -ws 5 -neg 10 -input $CONCAT_RAW.$METHOD -output $CONCAT_RAW.$METHOD
 fi
 echo "Cross-lingual embeddings in: $CONCAT_RAW.$METHOD.vec"
 
 
-## train model
-#CUDA_VISIBLE_DEVICES=0 python main.py --exp_name ${METHOD}_test --transformer True --n_enc_layers 4 --n_dec_layers 4 --share_enc 3 --share_dec 3 --share_lang_emb True --share_output_emb True --langs 'en,fr' --n_mono -1 --mono_dataset "en:./sp_data/mono/all.en.${METHOD}.pth,,;fr:./sp_data/mono/all.fr.${METHOD}.pth,," --para_dataset "en-fr:,./sp_data/para/dev/newstest2013-ref.XX.${METHOD}.pth,./sp_data/para/dev/newstest2014-fren-src.XX.${METHOD}.pth" --mono_directions 'en,fr' --word_shuffle 3 --word_dropout 0.1 --word_blank 0.2 --pivo_directions 'fr-en-fr,en-fr-en' --pretrained_emb "./sp_data/mono/all.en-fr.${METHOD}.vec" --pretrained_out True --lambda_xe_mono '0:1,100000:0.1,300000:0' --lambda_xe_otfd 1 --otf_num_processes 30 --otf_sync_params_every 1000 --enc_optimizer adam,lr=0.0001 --epoch_size 500000 --stopping_criterion bleu_en_fr_valid,10 --max_len=100
-
-
-
-#CUDA_VISIBLE_DEVICES=0 python main.py --exp_name bpe_test --transformer True --n_enc_layers 4 --n_dec_layers 4 --share_enc 3 --share_dec 3 --share_lang_emb True --share_output_emb True --langs 'en,fr' --n_mono -1 --mono_dataset 'en:./sp_data/mono/all.en.bpe.pth,,;fr:./sp_data/mono/all.fr.bpe.pth,,' --para_dataset 'en-fr:,./sp_data/para/dev/newstest2013-ref.XX.bpe.pth,./sp_data/para/dev/newstest2014-fren-src.XX.bpe.pth' --mono_directions 'en,fr' --word_shuffle 3 --word_dropout 0.1 --word_blank 0.2 --pivo_directions 'fr-en-fr,en-fr-en' --pretrained_emb './sp_data/mono/all.en-fr.bpe.vec' --pretrained_out True --lambda_xe_mono '0:1,100000:0.1,300000:0' --lambda_xe_otfd 1 --otf_num_processes 30 --otf_sync_params_every 1000 --enc_optimizer adam,lr=0.0001 --epoch_size 500000 --stopping_criterion bleu_en_fr_valid,10 --max_len=100
+# train model
+python main.py --exp_name ${METHOD}_test --transformer True --n_enc_layers 4 --n_dec_layers 4 --share_enc 3 --share_dec 3 --share_lang_emb True --share_output_emb True --langs 'en,fr' --n_mono -1 --mono_dataset "en:./sp_data/mono/all.en.${METHOD}.pth,,;fr:./sp_data/mono/all.fr.${METHOD}.pth,," --para_dataset "en-fr:,./sp_data/para/dev/newstest2013-ref.XX.${METHOD}.pth,./sp_data/para/dev/newstest2014-fren-src.XX.${METHOD}.pth" --mono_directions 'en,fr' --word_shuffle 3 --word_dropout 0.1 --word_blank 0.2 --pivo_directions 'fr-en-fr,en-fr-en' --pretrained_emb "./sp_data/mono/all.en-fr.${METHOD}.vec" --pretrained_out True --lambda_xe_mono '0:1,100000:0.1,300000:0' --lambda_xe_otfd 1 --otf_num_processes 30 --otf_sync_params_every 1000 --enc_optimizer adam,lr=0.0001 --epoch_size 500000 --stopping_criterion bleu_en_fr_valid,10
