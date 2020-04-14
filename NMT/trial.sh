@@ -54,6 +54,7 @@ FULL_VOCAB=$MONO_PATH/vocab.en-fr.$METHOD
 
 
 #echo $PWD/data/para/dev
+echo "Copying data from previous..."
 cp $PWD/data/para/dev $PWD/sp_data/para
 cp $PWD/data/mono/all.en $PWD/sp_data/mono/
 cp $PWD/data/mono/all.fr $PWD/sp_data/mono/
