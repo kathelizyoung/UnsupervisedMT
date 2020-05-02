@@ -86,6 +86,10 @@ def check_mt_model_params(params):
 
     # reload MT model
     assert params.reload_model == '' or os.path.isfile(params.reload_model)
+    # print(params.reload_model)
+    # print(params.reload_enc)
+    # print(params.reload_dec)
+    # print(params.reload_dis)
     assert not (params.reload_model != '') ^ (params.reload_enc or params.reload_dec or params.reload_dis)
 
 
